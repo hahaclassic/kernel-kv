@@ -2,6 +2,17 @@
 #include <string.h>
 #include "kv_lib.h"
 
+void print_stat(int fd)
+{
+    kv_stat_t stat = {0};
+    if (kv_stat(fd, &stat) < 0) {
+        perror("kv_stat");
+    }
+    
+    printf("STAT:\n\tbucket count: %llu\n\tmax_items: %llu\n\tcurr_items: %llu\n\tlru: %s", 
+        stat.bucket_count, stat.max_items, stat.cur_items, stat.use_lru ? "on" : "off");
+}
+
 int main(void)
 {
     int fd = kv_open();
@@ -33,15 +44,4 @@ int main(void)
 
     kv_close(fd);
     return 0;
-}
-
-void print_stat(int fd)
-{
-    kv_stat_t stat = {0};
-    if (kv_stat(fd, &stat) < 0) {
-        perror("kv_stat");
-    }
-    
-    printf("STAT:\n\tbucket count: %ld\n\tmax_items: %ld\n\tcurr_items: %ld\n\tlru: %s", 
-        stat.bucket_count, stat.max_items, stat.cur_items, stat.use_lru);
 }

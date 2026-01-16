@@ -1,12 +1,18 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <string.h>
+#include <unistd.h>
 #include "kv_lib.h"
 #include "../kv_ioctl.h"
 
 int kv_open(void)
 {
     return open("/dev/kvstore", O_RDWR);
+}
+
+int kv_close(int fd)
+{
+    return close(fd);
 }
 
 int kv_put(int fd, const char *k, const char *v)

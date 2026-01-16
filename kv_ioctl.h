@@ -1,5 +1,13 @@
 #pragma once
 #include <linux/ioctl.h>
+#ifdef __KERNEL__
+#include <linux/types.h>
+#else
+#include <stdint.h>
+typedef uint8_t  __u8;
+typedef uint32_t __u32;
+typedef uint64_t __u64;
+#endif
 
 #define KV_IOC_MAGIC 'k'
 #define KV_MAX_KEY   64
