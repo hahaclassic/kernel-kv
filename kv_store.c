@@ -115,16 +115,16 @@ int kv_get(struct kv_store *s, struct kv_pair *p)
     return -ENOENT;
 }
 
-int kv_del(struct kv_store *s, struct kv_pair *p)
+int kv_del(struct kv_store *s, struct kv_key *k)
 {
-    u32 h = hash_key(p->key) % s->bucket_count;
+    u32 h = hash_key(k->key) % s->bucket_count;
     struct kv_bucket *b = &s->buckets[h];
     struct kv_item *item;
 
     mutex_lock(&b->lock);
 
     hlist_for_each_entry(item, &b->head, hnode) {
-        if (!strcmp(item->key, p->key)) {
+        if (!strcmp(item->key, k->key)) {
 
             hlist_del(&item->hnode);
 
@@ -154,5 +154,7 @@ int kv_stat(struct kv_store *store, struct kv_usage_stat *stat)
     stat->bucket_count = store->bucket_count;
     stat->max_items = store->bucket_count;
     stat->use_lru = store->use_lru;
-    stat->cur_items = atomic_read(&store->cur_items);;
+    stat->cur_items = atomic_read(&store->cur_items);
+
+    return 0;
 }

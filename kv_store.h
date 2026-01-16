@@ -36,5 +36,5 @@ void kv_store_destroy(struct kv_store *s);
 
 int kv_put(struct kv_store *s, struct kv_pair *p);
 int kv_get(struct kv_store *s, struct kv_pair *p);
-int kv_del(struct kv_store *s, struct kv_pair *p);
+int kv_del(struct kv_store *s, struct kv_key *k);
 int kv_stat(struct kv_store *store, struct kv_usage_stat *stat);

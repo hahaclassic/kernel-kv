@@ -7,9 +7,13 @@ extern struct kv_store store;
 
 long kv_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
+    int err;
+    struct kv_pair p;
+    struct kv_key k;
+    struct kv_usage_stat stat;
+
     switch (cmd) {
     case KV_PUT:
-        struct kv_pair p;
         if (copy_from_user(&p, (void __user *)arg, sizeof(p)))
             return -EFAULT;
         pr_info("kv_ioctl: KV_PUT key=%s value=%s\n", p.key, p.value);
@@ -17,31 +21,27 @@ long kv_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
         return kv_put(&store, &p);
 
     case KV_GET:
-        struct kv_pair p;
         if (copy_from_user(&p, (void __user *)arg, sizeof(p)))
             return -EFAULT;
             
         pr_info("kv_ioctl: KV_GET key=%s\n", p.key);
-        int err = kv_get(&store, &p);
+        err = kv_get(&store, &p);
         if (err != 0)
             return -ENOENT;
         
         return copy_to_user((void __user *)arg, &p, sizeof(p));
 
     case KV_DEL:
-        struct kv_key k;
-        if (copy_from_user(&k, (void __user *)arg, sizeof(p)))
+        if (copy_from_user(&k, (void __user *)arg, sizeof(k)))
             return -EFAULT;
-        pr_info("kv_ioctl: KV_DEL key=%s\n", p.key);
+        pr_info("kv_ioctl: KV_DEL key=%s\n", k.key);
         
-        return kv_del(&store, &p);
+        return kv_del(&store, &k);
 
     case KV_STAT:
         pr_info("kv_ioctl: KV_STAT");
-        
-        struct kv_usage_stat stat;
-        int err = kv_stat(&store, &stat);
-        if (err != NULL)
+        err = kv_stat(&store, &stat);
+        if (err != 0)
             return err;
 
         return copy_to_user((void __user *)arg, &stat, sizeof(stat));
