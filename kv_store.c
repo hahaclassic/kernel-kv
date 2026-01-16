@@ -152,7 +152,7 @@ int kv_stat(struct kv_store *store, struct kv_usage_stat *stat)
         return -EINVAL;
     
     stat->bucket_count = store->bucket_count;
-    stat->max_items = store->bucket_count;
+    stat->max_items = store->max_items;
     stat->use_lru = store->use_lru;
     stat->cur_items = atomic_read(&store->cur_items);
 
