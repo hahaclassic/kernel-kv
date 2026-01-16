@@ -24,7 +24,7 @@ struct kv_store {
     struct kv_bucket *buckets;
     size_t bucket_count;
     size_t max_items;
-    size_t cur_items;
+    atomic_t cur_items;
     bool use_lru;
 
     struct list_head lru_list;
@@ -37,3 +37,4 @@ void kv_store_destroy(struct kv_store *s);
 int kv_put(struct kv_store *s, struct kv_pair *p);
 int kv_get(struct kv_store *s, struct kv_pair *p);
 int kv_del(struct kv_store *s, struct kv_pair *p);
+int kv_stat(struct kv_store *store, struct kv_usage_stat *stat);

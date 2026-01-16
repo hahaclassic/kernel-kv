@@ -11,8 +11,8 @@ int kv_store_init(struct kv_store *s, size_t buckets, size_t max_items, bool lru
 
     s->bucket_count = buckets;
     s->max_items = max_items;
-    s->cur_items = 0;
     s->use_lru = lru;
+    atomic_set(&s->cur_items, 0);
 
     s->buckets = kmalloc_array(buckets, sizeof(*s->buckets), GFP_KERNEL);
     if (!s->buckets)
@@ -62,12 +62,12 @@ int kv_put(struct kv_store *s, struct kv_pair *p)
         }
     }
 
-    if (s->use_lru && s->cur_items >= s->max_items) {
+    if (s->use_lru && atomic_read(&s->cur_items) >= s->max_items) {
         struct kv_item *victim = lru_evict(s);
         if (victim) {
             hlist_del(&victim->hnode);
             kfree(victim);
-            s->cur_items--;
+            atomic_dec(&s->cur_items);;
         }
     }
 
@@ -90,7 +90,7 @@ int kv_put(struct kv_store *s, struct kv_pair *p)
         spin_unlock(&s->lru_lock);
     }
 
-    s->cur_items++;
+    atomic_inc(&s->cur_items);;
     mutex_unlock(&b->lock);
     return 0;
 }
@@ -135,7 +135,7 @@ int kv_del(struct kv_store *s, struct kv_pair *p)
             }
 
             kfree(item);
-            s->cur_items--;
+            atomic_dec(&s->cur_items);
 
             mutex_unlock(&b->lock);
             return 0;
@@ -144,4 +144,15 @@ int kv_del(struct kv_store *s, struct kv_pair *p)
 
     mutex_unlock(&b->lock);
     return -ENOENT;
+}
+
+int kv_stat(struct kv_store *store, struct kv_usage_stat *stat)
+{
+    if (stat == NULL || store == NULL)
+        return -EINVAL;
+    
+    stat->bucket_count = store->bucket_count;
+    stat->max_items = store->bucket_count;
+    stat->use_lru = store->use_lru;
+    stat->cur_items = atomic_read(&store->cur_items);;
 }
