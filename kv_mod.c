@@ -76,16 +76,30 @@ static struct miscdevice kv_dev = {
 
 static int __init kv_init(void)
 {
-    pr_info("kv_kernel: init storage");
-    kv_store_init(&store, buckets, max_items, use_lru);
-    return misc_register(&kv_dev);
+    pr_info("kv_kernel: init storage...");
+    int err = kv_store_init(&store, buckets, max_items, use_lru);
+    if (err) {
+        pr_err("kv_kernel: init failed");
+        return err;
+    }
+    err = misc_register(&kv_dev);
+    if (err) {
+        pr_err("kv_kernel: misc_register failed");
+        return err;
+    }
+    pr_info("kv_kernel: init storage - DONE.");
+    pr_info("");
+
+    return 0;
 }
 
 static void __exit kv_exit(void)
 {
-    pr_info("kv_kernel: destroy storage");
+    pr_info("kv_storage: destroy storage");
     misc_deregister(&kv_dev);
     kv_store_destroy(&store);
+    pr_info("kv_kernel: destroy storage - DONE");
+    pr_info("");
 }
 
 module_init(kv_init);

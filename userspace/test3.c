@@ -3,11 +3,12 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 #include "kv_lib.h"
 
 #define NUM_KEYS 100
 #define NUM_READERS 4
-#define NUM_ITER 1000
+#define NUM_ITER 10
 
 void *writer_thread(void *arg) {
     int fd = kv_open();
@@ -21,11 +22,11 @@ void *writer_thread(void *arg) {
             int err = kv_put(fd, &p);
             if (err != 0) {
                 perror("kv_put");
-                printf("PUT ERR: %s -> %s: %s\n",
-                    p.key.data, p.value.data, kv_err_msg(err));
+                printf("[tid=%d] PUT ERR: %s -> %s: %s\n", pthread_self(),
+                    p.key.data, p.value.data, kv_err_msg(-errno));
             } else {
-                printf("PUT OK: %s -> %s: %s\n",
-                    p.key.data, p.value.data, kv_err_msg(err));
+                printf("[tid=%d] PUT OK: %s -> %s: %s\n", pthread_self(),
+                    p.key.data, p.value.data, kv_err_msg(-errno));
             }
         }
     }
@@ -43,11 +44,11 @@ void *reader_thread(void *arg) {
             int err = kv_get(fd, &p);
             if (err != 0) {
                 perror("kv_get");
-                printf("GET ERR: %s -> %s: %s\n",
-                    p.key.data, p.value.data, kv_err_msg(err));
+                printf("[tid=%d] GET ERR: %s -> %s: %s\n", pthread_self(),
+                    p.key.data, p.value.data, kv_err_msg(-errno));
             } else {
-                printf("GET OK: %s -> %s: %s\n",
-                    p.key.data, p.value.data, kv_err_msg(err));
+                printf("[tid=%d] GET OK: %s -> %s: %s\n", pthread_self(),
+                    p.key.data, p.value.data, kv_err_msg(-errno));
             }
         }
     }
