@@ -4,7 +4,7 @@
 #include <string.h>
 #include <sys/ioctl.h>
 
-#include "../kv_ioctl.h"
+#include "kv_lib.h"
 
 int main(void)
 {
