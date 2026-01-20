@@ -22,10 +22,10 @@ void *writer_thread(void *arg) {
             int err = kv_put(fd, &p);
             if (err != 0) {
                 perror("kv_put");
-                printf("[tid=%d] PUT ERR: %s -> %s: %s\n", pthread_self(),
+                printf("[tid=%ld] PUT ERR: %s -> %s: %s\n", pthread_self(),
                     p.key.data, p.value.data, kv_err_msg(-errno));
             } else {
-                printf("[tid=%d] PUT OK: %s -> %s: %s\n", pthread_self(),
+                printf("[tid=%ld] PUT OK: %s -> %s: %s\n", pthread_self(),
                     p.key.data, p.value.data, kv_err_msg(-errno));
             }
         }
@@ -44,10 +44,10 @@ void *reader_thread(void *arg) {
             int err = kv_get(fd, &p);
             if (err != 0) {
                 perror("kv_get");
-                printf("[tid=%d] GET ERR: %s -> %s: %s\n", pthread_self(),
+                printf("[tid=%ld] GET ERR: %s -> %s: %s\n", pthread_self(),
                     p.key.data, p.value.data, kv_err_msg(-errno));
             } else {
-                printf("[tid=%d] GET OK: %s -> %s: %s\n", pthread_self(),
+                printf("[tid=%ld] GET OK: %s -> %s: %s\n", pthread_self(),
                     p.key.data, p.value.data, kv_err_msg(-errno));
             }
         }
