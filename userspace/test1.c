@@ -21,7 +21,7 @@ int main(void)
     strcpy(p.value.data, "world\0");
     p.value.len = strlen(p.value.data) + 1;
 
-    printf("KV_PUT: %s -> %s", p.key.data, p.value.data);
+    printf("KV_PUT: %s -> %s\n", p.key.data, p.value.data);
     if (ioctl(fd, KV_PUT, &p) < 0)
         perror("KV_PUT");
 

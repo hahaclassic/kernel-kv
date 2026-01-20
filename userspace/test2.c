@@ -37,7 +37,7 @@ int main(void)
         err = kv_put(fd, &p);
         if (err < 0) {
             perror("kv_put");
-            kv_err_msg(err);
+            printf("%s\n", kv_err_msg(err));
         } else {
             printf("PUT: %s -> %s\n", p.key.data, p.value.data);
         }
@@ -54,7 +54,7 @@ int main(void)
     if (err == 0) {
         printf("ERROR: key1 still present: %s\n", p.value.data);
     } else {
-        kv_err_msg(err);
+        printf("%s\n", kv_err_msg(err));
         printf("OK: key1 was evicted\n");
     }
 
@@ -71,7 +71,7 @@ int main(void)
     if (err == 0) {
         printf("DEL: key2\n");
     } else {
-        kv_err_msg(err);
+        printf("%s\n", kv_err_msg(err));
         perror("kv_del key2");
     }
 
@@ -82,7 +82,7 @@ int main(void)
     } else if (err == 0) {
         printf("ERROR: key2 still exists\n");
     } else {
-        kv_err_msg(err);
+        printf("%s\n", kv_err_msg(err));
     }
 
     print_stat(fd);

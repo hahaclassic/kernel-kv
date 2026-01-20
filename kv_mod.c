@@ -76,12 +76,14 @@ static struct miscdevice kv_dev = {
 
 static int __init kv_init(void)
 {
+    pr_info("kv_kernel: init storage");
     kv_store_init(&store, buckets, max_items, use_lru);
     return misc_register(&kv_dev);
 }
 
 static void __exit kv_exit(void)
 {
+    pr_info("kv_kernel: destroy storage");
     misc_deregister(&kv_dev);
     kv_store_destroy(&store);
 }
