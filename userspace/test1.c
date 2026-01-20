@@ -16,17 +16,17 @@ int main(void)
 
     struct kv_pair p = {};
 
-    strcpy(p.key, "hello");
-    strcpy(p.value, "world");
-    p.value_len = strlen(p.value) + 1;
+    strcpy(p.key.data, "hello\0");
+    p.key.len = strlen(p.key.data) + 1;
+    strcpy(p.value.data, "world\0");
+    p.value.len = strlen(p.value.data) + 1;
 
+    printf("KV_PUT: %s -> %s", p.key.data, p.value.data);
     if (ioctl(fd, KV_PUT, &p) < 0)
         perror("KV_PUT");
 
-    memset(p.value, 0, sizeof(p.value));
-
     if (ioctl(fd, KV_GET, &p) == 0)
-        printf("GET: %s -> %s\n", p.key, p.value);
+        printf("GET: %s -> %s\n", p.key.data, p.value.data);
     else
         perror("KV_GET");
 

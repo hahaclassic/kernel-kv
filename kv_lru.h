@@ -1,17 +1,11 @@
-#pragma once
+#ifndef KV_LRU_H
+#define KV_LRU_H
 
-/* forward declarations */
-struct kv_store;
-struct kv_item;
+#include "kv_types.h"
 
-/*
- * LRU helpers
- */
+void lru_init(struct kv_lru *lru);
+void lru_touch(struct kv_lru *lru, struct kv_item *item);
+void lru_remove(struct kv_lru *lru, struct kv_item *item);
+struct kv_item *lru_evict(struct kv_lru *lru);
 
-void lru_touch(struct kv_store *s,
-               struct kv_item *item);
-
-/*
- * Returns victim item already removed from LRU list.
- */
-struct kv_item *lru_evict(struct kv_store *s);
+#endif // KV_LRU_H

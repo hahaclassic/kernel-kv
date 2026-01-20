@@ -1,72 +1,88 @@
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include "kv_lib.h"
+#include <inttypes.h>
 
 void print_stat(int fd)
 {
-    kv_stat_t stat = {0};
+    struct kv_usage_stat stat = {0};
     if (kv_stat(fd, &stat) < 0) {
         perror("kv_stat");
     }
     
-    printf("STAT:\n\tbucket count: %llu\n\tmax_items: %llu\n\tcurr_items: %llu\n\tlru: %s\n", 
+    printf("STAT:\n\tbucket count: %" PRIu64 "\n\tmax_items: %" PRIu64 "\n\tcurr_items: %" PRIu64 "\n\tlru: %s\n", 
         stat.bucket_count, stat.max_items, stat.cur_items, stat.use_lru ? "on" : "off");
 }
 
 int main(void)
 {
+    int err;
     int fd = kv_open();
     if (fd < 0) {
         perror("kv_open");
         return 1;
     }
 
+    // Fill storage
     print_stat(fd);
-
-    /* 1. Загружаем 11 элементов */
     for (int i = 1; i <= 11; i++) {
-        char key[16];
-        char value[16];
+        struct kv_pair p;
+        
+        snprintf(p.key.data, sizeof(p.key), "key%d", i);
+        p.key.len = strlen(p.key.data)+1;
+        snprintf(p.value.data, sizeof(p.value), "value%d", i);
+        p.value.len = strlen(p.value.data)+1;
 
-        snprintf(key, sizeof(key), "key%d", i);
-        snprintf(value, sizeof(value), "value%d", i);
-
-        if (kv_put(fd, key, value) < 0) {
+        err = kv_put(fd, &p);
+        if (err < 0) {
             perror("kv_put");
+            kv_err_msg(err);
         } else {
-            printf("PUT: %s -> %s\n", key, value);
+            printf("PUT: %s -> %s\n", p.key.data, p.value.data);
         }
     }
 
     print_stat(fd);
 
-    /* 2. Проверяем, что key1 вытеснён */
-    char buf[128] = {0};
-    if (kv_get(fd, "key1", buf) == 0) {
-        printf("ERROR: key1 still present: %s\n", buf);
+    // Check key1
+    struct kv_pair p;
+    strcpy(p.key.data, "key1\0");
+    p.key.len = 5;
+
+    err = kv_get(fd, &p);
+    if (err == 0) {
+        printf("ERROR: key1 still present: %s\n", p.value.data);
     } else {
+        kv_err_msg(err);
         printf("OK: key1 was evicted\n");
     }
 
-    /* 3. key2 должен существовать */
-    if (kv_get(fd, "key2", buf) == 0) {
-        printf("GET: key2 -> %s\n", buf);
+    // 3. Get key2
+    strcpy(p.key.data, "key2\0");
+    if (kv_get(fd, &p) == 0) {
+        printf("GET: key2 -> %s\n", p.value.data);
     } else {
-        printf("ERROR: key2 not found\n");
+        printf("ERROR: key2 not found: %s\n", kv_err_msg(err));
     }
 
-    /* 4. Удаляем key2 */
-    if (kv_del(fd, "key2") == 0) {
+    // 4. Delete key2
+    err = kv_del(fd, &p.key);
+    if (err == 0) {
         printf("DEL: key2\n");
     } else {
+        kv_err_msg(err);
         perror("kv_del key2");
     }
 
-    /* 5. Проверяем, что key2 действительно удалён */
-    if (kv_get(fd, "key2", buf) < 0) {
+    // 5. Check key2
+    err = kv_get(fd, &p);
+    if (err == -ENOENT) {
         printf("OK: key2 correctly deleted\n");
-    } else {
+    } else if (err == 0) {
         printf("ERROR: key2 still exists\n");
+    } else {
+        kv_err_msg(err);
     }
 
     print_stat(fd);

@@ -1,24 +1,32 @@
-#include "kv_store.h"
+#include "kv_lru.h"
 
-void lru_touch(struct kv_store *s, struct kv_item *item)
+void lru_init(struct kv_lru *lru) 
 {
-    if (!s->use_lru)
-        return;
-
-    spin_lock(&s->lru_lock);
-    list_move(&item->lru_node, &s->lru_list);
-    spin_unlock(&s->lru_lock);
+    INIT_LIST_HEAD(&lru->head);
 }
 
-struct kv_item *lru_evict(struct kv_store *s)
+void lru_touch(struct kv_lru *lru, struct kv_item *item)
+{
+    if (list_empty(&item->lru_node))
+        list_add(&item->lru_node, &lru->head); 
+    else
+        list_move(&item->lru_node, &lru->head);
+}
+
+void lru_remove(struct kv_lru *lru, struct kv_item *item)
+{
+    if (!list_empty(&item->lru_node))
+        list_del_init(&item->lru_node);
+}
+
+struct kv_item *lru_evict(struct kv_lru *lru)
 {
     struct kv_item *victim = NULL;
 
-    spin_lock(&s->lru_lock);
-    if (!list_empty(&s->lru_list)) {
-        victim = list_last_entry(&s->lru_list, struct kv_item, lru_node);
-        list_del(&victim->lru_node);
+    if (!list_empty(&lru->head)) {
+        victim = list_last_entry(&lru->head, struct kv_item, lru_node);
+        list_del_init(&victim->lru_node);
     }
-    spin_unlock(&s->lru_lock);
+    
     return victim;
 }

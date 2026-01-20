@@ -3,10 +3,9 @@ obj-m := kv.o
 
 # Состав модуля
 kv-objs := \
-	kv_mod.o \
-	kv_dev.o \
 	kv_store.o \
-	kv_lru.o
+	kv_lru.o \
+	kv_mod.o \
 
 # Путь к заголовкам текущего ядра
 KDIR := /lib/modules/$(shell uname -r)/build
