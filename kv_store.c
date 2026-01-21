@@ -24,6 +24,12 @@ inline static void kv_item_set_value(struct kv_item *item, struct kv_pair *p)
     item->value.len = p->value.len;
 }
 
+inline static void kv_pair_set_value(struct kv_pair *p, struct kv_item *item) 
+{
+    memcpy(p->value.data, item->value.data, item->value.len);
+    p->value.len = item->value.len;
+}
+
 int kv_store_init(struct kv_store *s, size_t buckets, size_t max_items, bool lru)
 {
     s->bucket_count = buckets;
@@ -104,7 +110,8 @@ int kv_put(struct kv_store *s, struct kv_pair *p)
     item = kv_bucket_find_item(b, &p->key);
     if (item) {
         kv_item_set_value(item, p);
-        lru_touch(&s->lru, item);
+        if (s->use_lru)
+            lru_touch(&s->lru, item);
         mutex_unlock(&s->lock);
         return 0;
     } 
@@ -146,8 +153,7 @@ int kv_get(struct kv_store *s, struct kv_pair *p)
         return -ENOENT;
     }
 
-    memcpy(p->value.data, item->value.data, item->value.len);
-    p->value.len = item->value.len;
+    kv_pair_set_value(p, item);
     if (s->use_lru)
         lru_touch(&s->lru, item);
 

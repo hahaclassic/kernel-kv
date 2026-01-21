@@ -33,7 +33,6 @@ void *writer_thread(void *arg) {
         perror("kv_open");
         return NULL;
     }
-    print_stat(fd);
 
     struct kv_pair p;
     for (int i = 0; i < NUM_ITER; i++) {
@@ -70,7 +69,6 @@ void *reader_thread(void *arg) {
         perror("kv_open");
         return NULL;
     }
-    print_stat(fd);
 
     struct kv_pair p;
     for (int k = 0; k < NUM_KEYS; k++) {
