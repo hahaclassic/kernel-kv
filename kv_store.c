@@ -16,7 +16,6 @@ inline static void kv_item_init(struct kv_item *item, struct kv_pair *p)
     memcpy(item->value.data, p->value.data, p->value.len);
     item->key.len = p->key.len;
     item->value.len = p->value.len;
-    INIT_LIST_HEAD(&item->lru_node);
 }
 
 inline static void kv_item_set_value(struct kv_item *item, struct kv_pair *p) 
@@ -41,7 +40,8 @@ int kv_store_init(struct kv_store *s, size_t buckets, size_t max_items, bool lru
     }
 
     mutex_init(&s->lock);
-    lru_init(&s->lru);
+    if (s->use_lru)
+        lru_init(&s->lru);
 
     return 0;
 }
@@ -122,6 +122,7 @@ int kv_put(struct kv_store *s, struct kv_pair *p)
     kv_item_init(item, p);
     hlist_add_head(&item->hnode, &b->head);
     if (s->use_lru) {
+        INIT_LIST_HEAD(&item->lru_node);
         lru_touch(&s->lru, item);
     }
     mutex_unlock(&s->lock);
@@ -147,9 +148,9 @@ int kv_get(struct kv_store *s, struct kv_pair *p)
 
     memcpy(p->value.data, item->value.data, item->value.len);
     p->value.len = item->value.len;
-    if (s->use_lru) {
+    if (s->use_lru)
         lru_touch(&s->lru, item);
-    }
+
     mutex_unlock(&s->lock);
 
     return 0;
@@ -172,7 +173,8 @@ int kv_del(struct kv_store *s, struct kv_key *k)
     }
 
     hlist_del(&item->hnode);
-    lru_remove(&s->lru, item);
+    if (s->use_lru)
+        lru_remove(&s->lru, item);
     kfree(item);
     atomic_dec(&s->curr_items);
     mutex_unlock(&s->lock);
