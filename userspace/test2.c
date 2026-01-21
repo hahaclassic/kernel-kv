@@ -78,12 +78,14 @@ int main(void)
 
     // 5. Check key2
     err = kv_get(fd, &p);
-    if (err == -ENOENT) {
-        printf("OK: key2 correctly deleted\n");
-    } else if (err == 0) {
-        printf("ERROR: key2 still exists\n");
+    if (err) {
+        err = -errno;
+        if (err == -ENOENT)
+            printf("OK: key2 correctly deleted\n");
+        else
+            printf("err: %s\n", kv_err_msg(err));
     } else {
-        printf("%s\n", kv_err_msg(err));
+        printf("ERROR: key2 still exists\n");
     }
 
     print_stat(fd);
