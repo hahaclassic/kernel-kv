@@ -142,24 +142,23 @@ int kv_get(struct kv_store *s, struct kv_pair *p)
     if (s == NULL || p == NULL || p->key.len > KV_MAX_KEY)
         return -EINVAL;
 
+    int err = 0;
+    struct kv_item *item;
     u32 hash = kv_key_hash(&p->key) % s->bucket_count;
     struct kv_bucket *b = &s->buckets[hash];
-    struct kv_item *item;
     
     mutex_lock(&s->lock);
     item = kv_bucket_find_item(b, &p->key);
-    if (!item) {
-        mutex_unlock(&s->lock);
-        return -ENOENT;
+    if (item) {
+        kv_pair_set_value(p, item);
+        if (s->use_lru)
+            lru_touch(&s->lru, item);
+    } else {
+       err = -ENOENT;
     }
-
-    kv_pair_set_value(p, item);
-    if (s->use_lru)
-        lru_touch(&s->lru, item);
-
     mutex_unlock(&s->lock);
 
-    return 0;
+    return err;
 }
 
 int kv_del(struct kv_store *s, struct kv_key *k)
@@ -167,25 +166,25 @@ int kv_del(struct kv_store *s, struct kv_key *k)
     if (s == NULL || k == NULL || k->len > KV_MAX_KEY)
         return -EINVAL;
 
+    int err = 0;
+    struct kv_item *item;
     u32 hash = kv_key_hash(k) % s->bucket_count;
     struct kv_bucket *b = &s->buckets[hash];
-    struct kv_item *item;
 
     mutex_lock(&s->lock);
     item = kv_bucket_find_item(b, k);
-    if (!item) {
-        mutex_unlock(&s->lock);
-        return -ENOENT;
+    if (item) {
+        hlist_del(&item->hnode);
+        if (s->use_lru)
+            lru_remove(&s->lru, item);
+        kfree(item);
+        atomic_dec(&s->curr_items);
+    } else {
+        err = -ENOENT;
     }
-
-    hlist_del(&item->hnode);
-    if (s->use_lru)
-        lru_remove(&s->lru, item);
-    kfree(item);
-    atomic_dec(&s->curr_items);
     mutex_unlock(&s->lock);
 
-    return 0;
+    return err;
 }
 
 int kv_stat(struct kv_store *s, struct kv_usage_stat *stat)
