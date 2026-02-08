@@ -14,24 +14,28 @@ int kv_close(int fd)
     return close(fd);
 }
 
-int kv_put(int fd, const struct kv_pair *pair)
-{
-    return ioctl(fd, KV_PUT, pair);
+int kv_put(int fd, const struct kv_pair *pair) {
+    if (ioctl(fd, KV_PUT, pair) < 0)
+        return -errno;
+    return 0;
 }
 
-int kv_get(int fd, struct kv_pair *pair)
-{
-    return ioctl(fd, KV_GET, pair);
+int kv_get(int fd, struct kv_pair *pair) {
+    if (ioctl(fd, KV_GET, pair) < 0)
+        return -errno;
+    return 0;
 }
 
-int kv_del(int fd, const struct kv_key *key)
-{
-    return ioctl(fd, KV_DEL, key);
+int kv_del(int fd, const struct kv_key *key) {
+    if (ioctl(fd, KV_DEL, key) < 0)
+        return -errno;
+    return 0;
 }
 
-int kv_stat(int fd, struct kv_usage_stat *stat)
-{
-    return ioctl(fd, KV_STAT, stat);
+int kv_stat(int fd, struct kv_usage_stat *stat) {
+    if (ioctl(fd, KV_STAT, stat) < 0)
+        return -errno;
+    return 0;
 }
 
 const char *kv_err_msg(int err)
