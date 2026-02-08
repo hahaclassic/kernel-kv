@@ -9,8 +9,8 @@
 #include "kv_types.h"
 #include "kv_lru.h"
 
-#define BUCKETS_DEFAULT 64
-#define MAX_ITEMS_DEFAULT 1024
+#define BUCKETS_DEFAULT 128
+#define MAX_ITEMS_DEFAULT 256
 #define USE_LRU_DEFAULT 0
 
 int kv_store_init(struct kv_store *s, size_t buckets, size_t max_items, bool lru);
