@@ -29,7 +29,7 @@ a Linux kernel module with optional LRU eviction.
 <!-- ## Performance Notes -->
 
 > [!NOTE]
-> Since the store is implemented using the Linux kernel's `hashtable`, when using custom `buckets` and `max_items`, **load factor (`max_items / buckets`) should generally not exceed 2** to reduce hash > collisions and maintain performance.
+> Since the store is implemented using the Linux kernel's `hashtable`, when using custom `buckets` and `max_items`, **load factor (`max_items / buckets`) should generally not exceed 2** to reduce hash collisions and maintain performance.
 
 ## Build and Install Module
 
